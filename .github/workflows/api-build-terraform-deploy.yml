@@ -1,12 +1,23 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
+# 1. Créer une User Assigned Managed Identity dans votre groupe de ressource
+# 2. Créer une Federated credentials dans les settings de la Managed Identity
+#   - Federated credential scenario => Github
+#   - Organization => votre organization Github
+#   - Repository => nom du repo Git qui exécute le github actions
+#   - Entity => Branch
+#   - Branch => le nom de votre branche
+# 2. Affecter un rôle Contributor à cette Managed Identity sur votre abonnement Azure (Access Control)
+# 3. Créer des secrets dans Github
+#   - AZURE_CLIENT_ID => l'ID se récupère dans l'overview de la Managed Identity
+#   - AZURE_TENANT_ID => se récupère avec la commande az account list => tenantId
+#   - AZURE_SUBSCRIPTION_ID => l'ID se récupère dans l'overview de l'Abonnement
+# 4. Tester la Github Actions
 
-name: Build, provision and deploy API app
+name: Build, Terraform and Deploy API app
 
 on:
   workflow_dispatch:
 
-#Special permissions required for OIDC authentication
+#Special permissions required for Azure OIDC authentication
 permissions:
   id-token: write
   contents: read
@@ -56,12 +67,12 @@ jobs:
     environment:
       name: "Azure"
     env:
-      #These environment variables are used by the terraform azure provider to setup OIDD authenticate.
+      #These environment variables are used by the terraform azure provider to setup OIDC authentication.
       ARM_CLIENT_ID: "${{ secrets.AZURE_CLIENT_ID }}"
       ARM_SUBSCRIPTION_ID: "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
       ARM_TENANT_ID: "${{ secrets.AZURE_TENANT_ID }}"
-      ARM_USE_MSI: true
-      #this is needed since we are running terraform with read-only permissions
+      ARM_USE_AZUREAD: true
+      #This is needed since we are running terraform with read-only permissions
       ARM_SKIP_PROVIDER_REGISTRATION: true
       #Terraform backend configuration
       TF_VAR_RESOURCE_GROUP: "${{ secrets.TF_VAR_RESOURCE_GROUP }}"
@@ -77,13 +88,6 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Azure login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       - name: Terraform
         working-directory: terraform
         run: |
@@ -97,7 +101,6 @@ jobs:
           echo "key = \"terraform.tfstate\"" | tee -a backend.tfvars
           echo 'subscription_id = "${{ secrets.AZURE_SUBSCRIPTION_ID }}"' | tee -a backend.tfvars
           echo 'tenant_id = "${{ secrets.AZURE_TENANT_ID }}"' | tee -a backend.tfvars
-          echo 'use_oidc = true' | tee -a backend.tfvars
 
           # Initialize Terraform.
           terraform init -input=false -backend-config="backend.tfvars"
@@ -112,6 +115,7 @@ jobs:
           -var 'RabbitMQ-Username=${{ secrets.RABBITMQ_USERNAME }}' \
           -var 'sql-server-username=${{ secrets.SQL_USERNAME }}' \
           -var 'sql-server-password=${{ secrets.SQL_PASSWORD }}' \
+          -var 'azure_object_id=${{ secrets.AZURE_OBJECT_ID }}' \
           -out=tf.plan
 
           # Apply the Terraform plan.
