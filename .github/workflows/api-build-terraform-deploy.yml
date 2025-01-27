@@ -1,16 +1,18 @@
+# ---------------------------------------------
 # 1. Créer une User Assigned Managed Identity dans votre groupe de ressource
 # 2. Créer une Federated credentials dans les settings de la Managed Identity
 #   - Federated credential scenario => Github
 #   - Organization => votre organization Github
 #   - Repository => nom du repo Git qui exécute le github actions
-#   - Entity => Branch
-#   - Branch => le nom de votre branche
+#   - Entity => Environment
+#   - Environment => le nom de votre environnement
 # 2. Affecter un rôle Contributor à cette Managed Identity sur votre abonnement Azure (Access Control)
 # 3. Créer des secrets dans Github
 #   - AZURE_CLIENT_ID => l'ID se récupère dans l'overview de la Managed Identity
 #   - AZURE_TENANT_ID => se récupère avec la commande az account list => tenantId
 #   - AZURE_SUBSCRIPTION_ID => l'ID se récupère dans l'overview de l'Abonnement
 # 4. Tester la Github Actions
+# ---------------------------------------------
 
 name: Build, Terraform and Deploy API app
 
@@ -44,6 +46,10 @@ jobs:
         working-directory: ${{env.PROJECT_FOLDER}}
         run: dotnet build --configuration Release
 
+      - name: Run Unit Tests
+        working-directory: ${{env.PROJECT_FOLDER}}
+        run: dotnet test --no-build --configuration Release
+
       - name: dotnet publish
         working-directory: ${{env.PROJECT_FOLDER}}
         run: dotnet publish -c Release -o myapp
@@ -62,8 +68,9 @@ jobs:
           name: .net-app
           path: ${{env.PROJECT_FOLDER}}/myapp
 
-  provision:
+  terraform:
     runs-on: ubuntu-latest
+    needs: build
     environment:
       name: "Azure"
     env:
@@ -87,8 +94,11 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
 
-      - name: Terraform
+      - name: Terraform init
+        id: tf-init
         working-directory: terraform
         run: |
           # Exit when any command returns a failure status.
@@ -105,6 +115,10 @@ jobs:
           # Initialize Terraform.
           terraform init -input=false -backend-config="backend.tfvars"
 
+      - name: Terraform plan
+        id: tf-plan
+        working-directory: terraform
+        run: |
           # Generate Terraform plan
           terraform plan -var 'project_name=${{ secrets.PROJECT_NAME }}' \
           -var 'owner_name=${{ secrets.OWNER_NAME }}' \
@@ -115,32 +129,59 @@ jobs:
           -var 'RabbitMQ-Username=${{ secrets.RABBITMQ_USERNAME }}' \
           -var 'sql-server-username=${{ secrets.SQL_USERNAME }}' \
           -var 'sql-server-password=${{ secrets.SQL_PASSWORD }}' \
-          -var 'azure_object_id=${{ secrets.AZURE_OBJECT_ID }}' \
           -out=tf.plan
 
+      - name: Terraform apply
+        id: tf-apply
+        working-directory: terraform
+        run: |
           # Apply the Terraform plan.
           terraform apply -auto-approve tf.plan
 
+      - name: Extract Terraform Outputs
+        working-directory: terraform
+        run: terraform output -json > terraform_outputs.json
+  
+      - name: Upload Terraform Outputs as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-outputs
+          path: terraform/terraform_outputs.json
+
   deploy:
     runs-on: ubuntu-latest
-    needs: [build, provision]
+    needs: [build, terraform]
     environment:
       name: "Azure"
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    env:
-      WEB_APP_NAME: "maalsi242mfouquetapi"
 
     steps:
+      - name: Download Terraform Outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-outputs
+      
+      - name: Read Terraform Outputs
+        run: |
+          WEBAPP_NAME=$(jq -r '.webapp_name.value' terraform_outputs.json)
+          echo "WEBAPP_NAME=${WEBAPP_NAME}" >> $GITHUB_ENV
+
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
+      - name: Azure Login
+        uses: azure/login@v1
         with:
-          app-name: ${{ env.WEB_APP_NAME }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Deploy to ${{ env.WEBAPP_NAME }} WebApp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.WEBAPP_NAME }}
           slot-name: "Production"
-          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           package: .
+        env:
+          WEBAPP_NAME: ${{ env.WEBAPP_NAME }}
