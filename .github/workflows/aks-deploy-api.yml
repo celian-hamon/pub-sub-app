@@ -13,17 +13,18 @@
 # 4. Tester la Github Actions
 
 
-name: Deploy MSSQL to AKS
+name: Deploy API to AKS
 
 on:
   push:
-    branches: ["develop"]
+    branches: ["main"]
   workflow_dispatch:
 
 env:
-  RESOURCE_GROUP: "rg-maalsi-23"
-  CLUSTER_NAME: "aks-maalsi-23"
-  NAMESPACE_NAME: "mfolabs"
+  RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
+  CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
+  NAMESPACE_NAME: ${{ secrets.APP_NAMESPACE }}
+  DEPLOYMENT_NAME: "api"
 
 jobs:
   deploy:
@@ -58,7 +59,7 @@ jobs:
           admin: 'false'
           use-kubelogin: 'true'
 
-      # Create Kubernetes namespace
+      # Create Kubernetes namespace if not exists
       - name: Create namespace
         run: |
           kubectl create namespace ${{ env.NAMESPACE_NAME }} --dry-run=client -o yaml | kubectl apply -f -
@@ -70,7 +71,7 @@ jobs:
           kubectl apply -k ./overlays/demo -n ${{ env.NAMESPACE_NAME }}
 
       # Deploys application based on given manifest file
-      - name: Deploy to AKS
+      - name: Deploy ${{ env.DEPLOYMENT_NAME }} to AKS
         run: |
-          cd kubernetes/mssql
+          cd kubernetes/${{ env.DEPLOYMENT_NAME }}
           kubectl apply -k ./overlays/demo -n ${{ env.NAMESPACE_NAME }}
