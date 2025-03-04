@@ -18,9 +18,15 @@ spec:
         - name: lab-rabbitmq
           env:
             - name: RABBITMQ_DEFAULT_PASS
-              value: admin
+              valueFrom:
+                secretKeyRef:
+                  key: RabbitMQ__Password
+                  name: pubsub-secrets
             - name: RABBITMQ_DEFAULT_USER
-              value: admin
+              valueFrom:
+                secretKeyRef:
+                  key: RabbitMQ__Username
+                  name: pubsub-secrets
           image: rabbitmq:3-management
           livenessProbe:
             exec:
@@ -39,7 +45,7 @@ spec:
               name: volume
               readOnly: false
       volumes:
-      - name: volume
-        persistentVolumeClaim:
-          claimName: rabbitmq-pvc
+        - name: volume
+          persistentVolumeClaim:
+            claimName: rabbitmq-pvc
       restartPolicy: Always

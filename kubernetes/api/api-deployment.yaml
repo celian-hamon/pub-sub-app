@@ -5,7 +5,7 @@ metadata:
     app: api
   name: api
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: api
@@ -18,15 +18,32 @@ spec:
         - name: api
           env:
             - name: ConnectionStrings__DefaultConnection
-              value: Server=tcp:mssql,1433;Initial Catalog=RabbitMqDemo;Persist Security Info=False;User ID=sa;Password=P@ssw0rd2023!;Connection Timeout=30;
+              valueFrom:
+                secretKeyRef:
+                  key: ConnectionStrings__DefaultConnection
+                  name: pubsub-secrets
             - name: RabbitMQ__Hostname
-              value: rabbitmq
+              valueFrom:
+                configMapKeyRef:
+                  key: RabbitMQ__Hostname
+                  name: pubsub-cm
             - name: RabbitMQ__Password
-              value: admin
+              valueFrom:
+                secretKeyRef:
+                  key: RabbitMQ__Password
+                  name: pubsub-secrets
             - name: RabbitMQ__Username
-              value: admin
+              valueFrom:
+                secretKeyRef:
+                  key: RabbitMQ__Username
+                  name: pubsub-secrets
           image: acrmfolabsform.azurecr.io/matthieuf/pubsub-api:1.3
           ports:
             - containerPort: 80
               protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+            requests:
+              cpu: 200m
       restartPolicy: Always

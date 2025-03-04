@@ -24,13 +24,25 @@ spec:
               name: tcpsql
           env:
             - name: ACCEPT_EULA
-              value: "Y"
+              valueFrom:
+                configMapKeyRef:
+                  name: mssql
+                  key: ACCEPT_EULA
             - name: MSSQL_ENABLE_HADR
-              value: "1"
+              valueFrom:
+                configMapKeyRef:
+                  name: mssql
+                  key: MSSQL_ENABLE_HADR
             - name: MSSQL_AGENT_ENABLED
-              value: "1"
+              valueFrom:
+                configMapKeyRef:
+                  name: mssql
+                  key: MSSQL_AGENT_ENABLED
             - name: MSSQL_SA_PASSWORD
-              value: "P@ssw0rd2023!"
+              valueFrom:
+                secretKeyRef:
+                  name: pubsub-secrets
+                  key: MSSQL_SA_PASSWORD
           volumeMounts:
             - mountPath: "/var/opt/mssql"
               name: mssql

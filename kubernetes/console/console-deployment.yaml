@@ -18,10 +18,19 @@ spec:
         - name: lab-console
           env:
             - name: RabbitMQ__Hostname
-              value: rabbitmq
+              valueFrom:
+                configMapKeyRef:
+                  key: RabbitMQ__Hostname
+                  name: pubsub-cm
             - name: RabbitMQ__Password
-              value: admin
+              valueFrom:
+                secretKeyRef:
+                  key: RabbitMQ__Password
+                  name: pubsub-secrets
             - name: RabbitMQ__Username
-              value: admin
+              valueFrom:
+                secretKeyRef:
+                  key: RabbitMQ__Username
+                  name: pubsub-secrets
           image: acrmfolabsform.azurecr.io/matthieuf/pubsub-console:1.0
       restartPolicy: Always
