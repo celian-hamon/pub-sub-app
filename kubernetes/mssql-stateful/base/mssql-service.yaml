@@ -9,4 +9,6 @@ spec:
     - name: "mssql"
       port: 1433
       targetPort: 1433
+  selector:
+    statefulset.kubernetes.io/pod-name: mssql-0
   type: ClusterIP
