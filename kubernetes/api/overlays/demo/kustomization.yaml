@@ -6,3 +6,5 @@ resources:
 
 patches:
   - path: api-ingress.yaml
+
+namespace: mfolabs-demo
