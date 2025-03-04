@@ -20,17 +20,17 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.kompose.service: mssql
+    app: mssql
   name: mssql
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: mssql
+      app: mssql
   template:
     metadata:
       labels:
-        io.kompose.service: mssql
+        app: mssql
     spec:
       securityContext:
         fsGroup: 10001
@@ -75,7 +75,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    io.kompose.service: mssql
+    app: mssql
   name: mssql
 spec:
   ports:
@@ -83,6 +83,6 @@ spec:
       port: 1433
       targetPort: 1433
   selector:
-    io.kompose.service: mssql
+    app: mssql
 status:
   loadBalancer: {}

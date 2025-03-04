@@ -9,18 +9,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.kompose.service: console
+    app: console
   name: console
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: console
+      app: console
   strategy: {}
   template:
     metadata:
       labels:
-        io.kompose.service: console
+        app: console
     spec:
       initContainers:
         - name: wait-for-rabbitmq
