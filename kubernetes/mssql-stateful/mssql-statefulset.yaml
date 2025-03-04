@@ -41,12 +41,22 @@ spec:
             - name: MSSQL_SA_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: pubsub-secrets
-                  key: MSSQL_SA_PASSWORD
+                  name: mssql-password
+                  key: mssql-password
           volumeMounts:
             - mountPath: "/var/opt/mssql"
               name: mssql
               readOnly: false
+            - name: secrets-store
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "pubsub-keyvault"
   volumeClaimTemplates:
     - metadata:
         name: mssql

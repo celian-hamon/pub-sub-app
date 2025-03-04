@@ -25,12 +25,23 @@ spec:
             - name: RabbitMQ__Password
               valueFrom:
                 secretKeyRef:
-                  key: RabbitMQ__Password
-                  name: pubsub-secrets
+                  key: rabbit-password
+                  name: rabbit-password
             - name: RabbitMQ__Username
               valueFrom:
                 secretKeyRef:
-                  key: RabbitMQ__Username
-                  name: pubsub-secrets
+                  key: rabbit-username
+                  name: rabbit-username
           image: acrmfolabsform.azurecr.io/matthieuf/pubsub-console:1.0
+          volumeMounts:
+            - name: secrets-store
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
       restartPolicy: Always
+      volumes:
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "pubsub-keyvault"

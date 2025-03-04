@@ -20,8 +20,8 @@ spec:
             - name: ConnectionStrings__DefaultConnection
               valueFrom:
                 secretKeyRef:
-                  key: ConnectionStrings__DefaultConnection
-                  name: pubsub-secrets
+                  key: mssql-connectionstring
+                  name: mssql-connectionstring
             - name: RabbitMQ__Hostname
               valueFrom:
                 configMapKeyRef:
@@ -30,13 +30,13 @@ spec:
             - name: RabbitMQ__Password
               valueFrom:
                 secretKeyRef:
-                  key: RabbitMQ__Password
-                  name: pubsub-secrets
+                  key: rabbit-password
+                  name: rabbit-password
             - name: RabbitMQ__Username
               valueFrom:
                 secretKeyRef:
-                  key: RabbitMQ__Username
-                  name: pubsub-secrets
+                  key: rabbit-username
+                  name: rabbit-username
           image: acrmfolabsform.azurecr.io/matthieuf/pubsub-api:1.3
           ports:
             - containerPort: 80
@@ -46,4 +46,21 @@ spec:
               cpu: 500m
             requests:
               cpu: 200m
+          volumeMounts:
+            - mountPath: "/var/lib/rabbitmq"
+              name: volume
+              readOnly: false
+            - name: secrets-store
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
       restartPolicy: Always
+      volumes:
+        - name: volume
+          persistentVolumeClaim:
+            claimName: rabbitmq-pvc
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "pubsub-keyvault"
