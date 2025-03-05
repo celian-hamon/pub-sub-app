@@ -16,6 +16,7 @@ spec:
     spec:
       securityContext:
         fsGroup: 10001
+      automountServiceAccountToken: false
       containers:
         - name: mssql # container name within the pod.
           image: mcr.microsoft.com/mssql/server:2022-latest
