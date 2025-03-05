@@ -19,8 +19,8 @@ on:
   push:
     branches: ["maalsi24"]
     paths: 
-      - 'kubernetes/console'
-      - 'RabbitMqProduct.ConsoleApplication'
+      - 'kubernetes/console/**'
+      - 'RabbitMqProduct.ConsoleApplication/**'
   workflow_dispatch:
 
 env:

@@ -19,8 +19,8 @@ on:
   push:
     branches: ["maalsi24"]
     paths: 
-      - 'kubernetes/api'
-      - 'RabbitMqProductAPI'
+      - 'kubernetes/api/**'
+      - 'RabbitMqProductAPI/**'
   workflow_dispatch:
 
 env:

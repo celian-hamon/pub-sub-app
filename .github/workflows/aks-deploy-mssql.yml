@@ -19,7 +19,7 @@ on:
   push:
     branches: ["maalsi24"]
     paths: 
-      - 'kubernetes/mssql'
+      - 'kubernetes/mssql/**'
   workflow_dispatch:
 
 env:

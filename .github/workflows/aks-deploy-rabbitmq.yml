@@ -19,7 +19,7 @@ on:
   push:
     branches: ["maalsi24"]
     paths: 
-      - 'kubernetes/rabbitmq'
+      - 'kubernetes/rabbitmq/**'
   workflow_dispatch:
 
 env:

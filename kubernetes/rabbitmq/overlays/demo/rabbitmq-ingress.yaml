@@ -10,13 +10,6 @@ spec:
     http:
       paths:
       - pathType: Prefix
-        path: /
-        backend:
-          service:
-            name: rabbitmq
-            port:
-              number: 15672
-      - pathType: Prefix
         path: /*
         backend:
           service:
