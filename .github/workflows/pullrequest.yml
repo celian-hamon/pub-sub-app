@@ -14,7 +14,7 @@
 #   - Assurez-vous que le projet est configuré dans SonarQube ou SonarCloud.
 # ---------------------------------------------
 
-name: Sonar Analysis
+name: Pull Requests
 
 env:
   PROJECT_FOLDER: "RabbitMqProductAPI"
@@ -22,12 +22,9 @@ env:
   DOTNET_VERSION: "9.x"
 
 on:
-  push:
-    branches:
-      - develop
   pull_request:
     branches:
-      - develop
+      - maalsi24
   workflow_dispatch:
 
 jobs:
@@ -63,8 +60,6 @@ jobs:
 
   sonar:
     runs-on: ubuntu-latest
-    environment:
-      name: "Azure"
 
     steps:      
       - uses: actions/checkout@v4
