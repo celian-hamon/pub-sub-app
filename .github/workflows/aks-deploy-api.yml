@@ -71,6 +71,12 @@ jobs:
         run: |
           cd kubernetes/global/secrets
           kubectl apply -k ./overlays/demo -n ${{ env.NAMESPACE_NAME }}
+      
+      # Deploys global configMap based on given manifest file
+      - name: Deploy global configMap to AKS
+        run: |
+          cd kubernetes/global/configmap
+          kubectl apply -k ./overlays/demo -n ${{ env.NAMESPACE_NAME }}
 
       # Deploys application based on given manifest file
       - name: Deploy ${{ env.DEPLOYMENT_NAME }} to AKS
