@@ -13,7 +13,7 @@
 # 4. Tester la Github Actions
 
 
-name: Deploy API to AKS
+name: Deploy MSSQL to AKS
 
 on:
   push:
