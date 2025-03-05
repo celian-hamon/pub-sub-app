@@ -20,6 +20,12 @@ on:
     branches: ["maalsi24"]
   workflow_dispatch:
 
+#Special permissions required for Azure OIDC authentication
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
 env:
   RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
   CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
