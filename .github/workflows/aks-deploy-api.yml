@@ -17,6 +17,7 @@ name: Deploy API to AKS
 on:
     push:
         branches: ["maalsi24"]
+
     workflow_dispatch:
 
 env:
