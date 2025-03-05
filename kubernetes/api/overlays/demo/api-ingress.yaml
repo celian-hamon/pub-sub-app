@@ -5,7 +5,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: azure/application-gateway
     appgw.ingress.kubernetes.io/override-frontend-port: "8081"
-    appgw.ingress.kubernetes.io/health-probe-port: "80"
+    appgw.ingress.kubernetes.io/health-probe-port: "8080"
     appgw.ingress.kubernetes.io/health-probe-path: "/api/Product/productlist"
     appgw.ingress.kubernetes.io/health-probe-status-code: "100-599"
     appgw.ingress.kubernetes.io/health-probe-interval: "30"
@@ -23,4 +23,4 @@ spec:
           service:
             name: api
             port:
-              number: 80
+              number: 8080

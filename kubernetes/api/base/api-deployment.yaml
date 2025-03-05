@@ -39,12 +39,12 @@ spec:
                   name: rabbit-username
           image: acrmfolabsform.azurecr.io/matthieuf/pubsub-api:latest
           ports:
-            - containerPort: 80
+            - containerPort: 8080
               protocol: TCP
           readinessProbe:
             httpGet:
               path: /api/Product/productlist
-              port: 80
+              port: 8080
             periodSeconds: 3
             timeoutSeconds: 1
           resources:
