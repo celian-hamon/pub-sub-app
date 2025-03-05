@@ -17,7 +17,7 @@ name: Deploy API to AKS
 
 on:
   push:
-    branches: ["main"]
+    branches: ["maalsi24"]
   workflow_dispatch:
 
 env:
@@ -67,7 +67,7 @@ jobs:
       # Deploys secrets based on given manifest file
       - name: Deploy secrets to AKS
         run: |
-          cd kubernetes/keyvault
+          cd kubernetes/global/secrets
           kubectl apply -k ./overlays/demo -n ${{ env.NAMESPACE_NAME }}
 
       # Deploys application based on given manifest file
