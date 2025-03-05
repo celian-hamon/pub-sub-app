@@ -12,65 +12,64 @@
 #   - AZURE_SUBSCRIPTION_ID => l'ID se récupère dans l'overview de l'Abonnement
 # 4. Tester la Github Actions
 
-
 name: Deploy API to AKS
 
 on:
-  push:
-    branches: ["maalsi24"]
-  workflow_dispatch:
+    push:
+        branches: ["maalsi24"]
+    workflow_dispatch:
 
 env:
-  RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
-  CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
-  NAMESPACE_NAME: ${{ secrets.APP_NAMESPACE }}
-  DEPLOYMENT_NAME: "api"
+    RESOURCE_GROUP: ${{ secrets.AKS_RESOURCE_GROUP }}
+    CLUSTER_NAME: ${{ secrets.AKS_CLUSTER_NAME }}
+    NAMESPACE_NAME: ${{ secrets.APP_NAMESPACE }}
+    DEPLOYMENT_NAME: "api"
 
 jobs:
-  deploy:
-    permissions:
-      contents: read
-      id-token: write
-    runs-on: ubuntu-latest
-    steps:
-      # Checks out the repository this file is in
-      - uses: actions/checkout@v3
+    deploy:
+        permissions:
+            contents: read
+            id-token: write
+        runs-on: ubuntu-latest
+        steps:
+            # Checks out the repository this file is in
+            - uses: actions/checkout@v3
 
-      # Logs in with your Azure credentials
-      - name: Azure Login action
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-          enable-AzPSSession: true
+            # Logs in with your Azure credentials
+            - name: Azure Login action
+              uses: azure/login@v2
+              with:
+                  creds: ${{ secrets.AZURE_CREDENTIALS }}
+                  enable-AzPSSession: true
 
-      # Use kubelogin to configure your kubeconfig for Azure auth
-      - name: Set up kubelogin for non-interactive login
-        uses: azure/use-kubelogin@v1
-        with:
-          kubelogin-version: 'v0.0.25'
+            # Use kubelogin to configure your kubeconfig for Azure auth
+            - name: Set up kubelogin for non-interactive login
+              uses: azure/use-kubelogin@v1
+              with:
+                  kubelogin-version: "v0.0.25"
 
-      # Retrieves your Azure Kubernetes Service cluster's kubeconfig file
-      - name: Get K8s context
-        uses: azure/aks-set-context@v3
-        with:
-          resource-group: ${{ env.RESOURCE_GROUP }}
-          cluster-name: ${{ env.CLUSTER_NAME }}
-          admin: 'false'
-          use-kubelogin: 'true'
+            # Retrieves your Azure Kubernetes Service cluster's kubeconfig file
+            - name: Get K8s context
+              uses: azure/aks-set-context@v3
+              with:
+                  resource-group: ${{ env.RESOURCE_GROUP }}
+                  cluster-name: ${{ env.CLUSTER_NAME }}
+                  admin: "false"
+                  use-kubelogin: "true"
 
-      # Create Kubernetes namespace if not exists
-      - name: Create namespace
-        run: |
-          kubectl create namespace ${{ env.NAMESPACE_NAME }} --dry-run=client -o yaml | kubectl apply -f -
-      
-      # Deploys secrets based on given manifest file
-      - name: Deploy secrets to AKS
-        run: |
-          cd kubernetes/global/secrets
-          kubectl apply -k ./overlays/demo -n ${{ env.NAMESPACE_NAME }}
+            # Create Kubernetes namespace if not exists
+            - name: Create namespace
+              run: |
+                  kubectl create namespace ${{ env.NAMESPACE_NAME }} --dry-run=client -o yaml | kubectl apply -f -
 
-      # Deploys application based on given manifest file
-      - name: Deploy ${{ env.DEPLOYMENT_NAME }} to AKS
-        run: |
-          cd kubernetes/${{ env.DEPLOYMENT_NAME }}
-          kubectl apply -k ./overlays/demo -n ${{ env.NAMESPACE_NAME }}
+            # Deploys secrets based on given manifest file
+            - name: Deploy secrets to AKS
+              run: |
+                  cd kubernetes/global/secrets
+                  kubectl apply -k ./overlays/demo -n ${{ env.NAMESPACE_NAME }}
+
+            # Deploys application based on given manifest file
+            - name: Deploy ${{ env.DEPLOYMENT_NAME }} to AKS
+              run: |
+                  cd kubernetes/${{ env.DEPLOYMENT_NAME }}
+                  kubectl apply -k ./overlays/demo -n ${{ env.NAMESPACE_NAME }}
