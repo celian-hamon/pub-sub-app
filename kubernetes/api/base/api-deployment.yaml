@@ -37,7 +37,7 @@ spec:
                 secretKeyRef:
                   key: rabbit-username
                   name: rabbit-username
-          image: acrmfolabsform.azurecr.io/matthieuf/pubsub-api:1.3
+          image: acrmfolabsform.azurecr.io/matthieuf/pubsub-api:latest
           ports:
             - containerPort: 80
               protocol: TCP
